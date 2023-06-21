@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Measurements</title>
+</head>
+<body>
+    <h1>Measurements</h1>
+    {% for measurement_name, measurement_value in measurements.items() %}
+        <p>{{measurement_name}}: {{measurement_value}}</p>
+    {% endfor %}
+</body>
+</html>
