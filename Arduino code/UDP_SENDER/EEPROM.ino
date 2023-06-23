@@ -3,38 +3,39 @@
 
 #define CONFIG_FILE "/config.json"
 
+#define CONFIG_PIN 14 // this is pin 5
+
 String user_input;
 
 void config_setup() {
   SPIFFS.begin();
-    loadConfig();
+  loadConfig();
+
+  pinMode(CONFIG_PIN, INPUT_PULLUP);
 
   unsigned long startTime = millis(); // Store the current time
 
   while (!Serial && millis() - startTime < 5000) {
     // Wait for serial connection or timeout
   }
+  
+  if (!digitalRead(CONFIG_PIN)) {
+    Serial.println("");
+    print_header();
+    while (true) {
 
-  if (!Serial) {
-    // Serial connection not established within the timeout period
-    // Handle the timeout condition if desired
-    return;
-  }
-
-  print_header();
-
-  while (true) {
-    if (Serial.available()) {
-      user_input = Serial.readString(); // Read the input as a string
-      user_input.trim(); // Remove leading and trailing whitespaces
-
-      update_parameter("ssid", config.ssid, sizeof(config.ssid));
-      update_parameter("pass", config.password, sizeof(config.password));
-      update_parameter("ip", config.serverIP, sizeof(config.serverIP));
-      update_parameter("port", config.serverPort, sizeof(config.serverPort));
-
-      if (user_input == "q" || user_input == "exit") {
-        return;
+      if (Serial.available()) {
+        user_input = Serial.readString(); // Read the input as a string
+        user_input.trim(); // Remove leading and trailing whitespaces
+  
+        update_parameter("ssid", config.ssid, sizeof(config.ssid));
+        update_parameter("pass", config.password, sizeof(config.password));
+        update_parameter("ip", config.serverIP, sizeof(config.serverIP));
+        update_parameter("port", config.serverPort, sizeof(config.serverPort));
+  
+        if (user_input == "q" || user_input == "exit") {
+          return;
+        }
       }
     }
   }

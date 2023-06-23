@@ -8,6 +8,8 @@ struct Config {
 
 Config config;
 
+#define ANALOG_PIN A0
+
 void setup(){
   
   Serial.begin(9600);
@@ -15,16 +17,17 @@ void setup(){
   config_setup();
   
   wifi_setup();
+
+  pinMode(ANALOG_PIN,INPUT);
   
 }
 
 void loop(){
 
-
 //  Serial.println("here");
-//  
-  wifi_send_UDP_packet("Hello");
+
+  wifi_send_UDP_packet(String(analogRead(ANALOG_PIN)));
   
-//  delay(1000);/
+  delay(3);// a delay is needed because the cashe gets saturated going too fast
   
 }

@@ -3,6 +3,8 @@
 
 WiFiUDP udp;
 
+#define LED_PIN 2
+
 int connectionAttempts = 0;
 const int maxConnectionAttempts = 100;
 
@@ -13,7 +15,10 @@ void wifi_setup() {
   Serial.println(config.ssid);
   WiFi.mode(WIFI_STA);
   WiFi.begin(config.ssid, config.password);
+  pinMode(LED_PIN,OUTPUT);
+  digitalWrite(LED_PIN,HIGH);
   wifi_check_and_connect();
+  
 }
 
 
@@ -31,16 +36,20 @@ void wifi_check_and_connect() {
         
     }
     else {
+      digitalWrite(LED_PIN,HIGH);
       WiFi.disconnect();
       Serial.print("\nConnecting to ");
       Serial.println(config.ssid);
       WiFi.mode(WIFI_STA);
       WiFi.begin(config.ssid, config.password);
       connectionAttempts = 0;
+      has_been_connected = false;
     }
   }
 
   if (!has_been_connected){
+
+      digitalWrite(LED_PIN,LOW);
       
       Serial.println("");
       Serial.println("WiFi connected");
