@@ -1,44 +1,50 @@
 import sqlite3
 from sqlite3 import Error
-import datetime
 import pandas as pd
+import matplotlib.pyplot as plt
+
+global conn
 
 def create_connection(db_file):
+    global conn
     conn = None
     try:
         conn = sqlite3.connect(db_file)
         print(f'successful SQLite connection with sqlite version {sqlite3.version}')
     except Error as e:
         print(f"Error {e.args[0]}: {e}")
-    return conn
 
-def close_connection(conn):
+def close_connection():
+    global conn
     conn.close()
     print('SQLite connection is closed')
 
-def create_table(conn):
+def create_table():
+    global conn
     try:
-        query = '''CREATE TABLE IF NOT EXISTS time_series_data (
+        query = '''CREATE TABLE IF NOT EXISTS Sensor_Data (
                         id INTEGER PRIMARY KEY,
                         event_time TEXT NOT NULL,
-                        value REAL,
-                        extra_column TEXT);'''
+                        ip_address TEXT,
+                        Raw_value REAL);'''
         conn.execute(query)
     except Error as e:
         print(e)
 
-def insert_data(conn, event_time, value, extra_data):
+def insert_data(event_time, ip_address, Raw_value):
+    global conn
     try:
-        query = '''INSERT INTO time_series_data(event_time, value, extra_column) 
-                   VALUES(?, ?, ?);'''
-        conn.execute(query, (event_time, value, extra_data))
+        query = '''INSERT INTO Sensor_Data(event_time, ip_address, Raw_value) 
+                VALUES(?, ?, ?);'''
+        conn.execute(query, (event_time, ip_address, Raw_value))
         conn.commit()
     except Error as e:
         print(e)
 
-def read_all_data(conn):
+def read_all_data():
+    global conn
     try:
-        query = '''SELECT * FROM time_series_data;'''
+        query = '''SELECT * FROM Sensor_Data;'''
         cur = conn.cursor()
         cur.execute(query)
         rows = cur.fetchall()
@@ -47,25 +53,58 @@ def read_all_data(conn):
     except Error as e:
         print(e)
 
-def handle_sensor_data(ip_address, value, conn):
-    event_time = datetime.datetime.now().isoformat()
-    insert_data(conn, event_time, value, ip_address)
+def read_data_to_dataframe(start_time = "all", end_time = "all"):
 
-def read_data_to_dataframe(conn):
-    query = '''SELECT * FROM time_series_data;'''
+    global conn
+    start_time = '2023-06-01 00:00:00'  # Specify the start time
+    end_time = '2023-07-02 00:00:00'  # Specify the end time
+
+    query = f"SELECT * FROM Sensor_Data WHERE event_time BETWEEN '{start_time}' AND '{end_time}';"
     df = pd.read_sql_query(query, conn)
-    return df
+    
+    # Check if 'ip_address' column exists in the DataFrame
+    if 'ip_address' not in df.columns:
+        print("Error: 'ip_address' column not found in the DataFrame.")
+        return None
+
+    # Replace value with Raw_value for each unique IP address
+    unique_ips = df['ip_address'].unique()
+    for ip in unique_ips:
+        mask = df['ip_address'] == ip
+        df.loc[mask, ip] = df.loc[mask, 'Raw_value']
+
+    # Assuming your DataFrame is named 'df'
+    df['event_time'] = pd.to_datetime(df['event_time'], format='%Y-%m-%d %H:%M:%S.%f')
+
+    # Set 'event_time' as the index
+    df.set_index('event_time', inplace=True)
+
+    df.drop(['id','ip_address','Raw_value'], axis=1, inplace=True)
+
+    # print(df)
+
+    shrunken_df = df.resample('10L').mean()
+
+    print(shrunken_df)
+    
+    # Calculate the mean of 100 readings using rolling window
+    #df['rolling_mean'] = df['value'].rolling(window=100).mean()
+    
+    return shrunken_df
+
+def plot_data(df):
+    # Assuming your DataFrame is named 'df'
+    df.plot(y='10.81.252.114', legend=False)
+    plt.xlabel('Event Time')
+    plt.ylabel('Value')
+    plt.title('Plot of 10.81.252.114')
+    plt.show()
 
 if __name__ == "__main__":
     db_file = 'my_database.db'
-    conn = create_connection(db_file)
+    create_connection(db_file)
 
+    df = read_data_to_dataframe()
+    plot_data(df)
 
-    handle_sensor_data('192.168.1.205', '1234', conn)
-
-    # read_all_data(conn)
-
-    df = read_data_to_dataframe(conn)
-    print(df)
-
-    close_connection(conn)
+    close_connection()

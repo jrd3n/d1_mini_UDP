@@ -14,16 +14,16 @@ def udp_server():
 
     #SQlite Stuff
     db_file = 'my_database.db'
-    conn = create_connection(db_file)
-    create_table(conn)  # ensure the table is created
+    create_connection(db_file)
+    create_table()  # ensure the table is created
 
     while True:
         data, addr = sock.recvfrom(1024)
-        print("Received message:", data, "from:", addr)
+        print("Received message:", data.decode('utf-8'), "from:", addr)
 
         IP = addr[0]
 
-        handle_sensor_data(IP, data, conn)
+        insert_data(datetime.now(),IP,data.decode('utf-8'))
 
 @app.route('/')
 def home():
