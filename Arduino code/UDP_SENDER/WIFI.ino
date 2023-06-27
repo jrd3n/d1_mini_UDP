@@ -68,8 +68,8 @@ void wifi_send_UDP_packet(String packet) {
   int udpServerPort = atoi(config.serverPort);
   udp.beginPacket(config.serverIP, udpServerPort);
 
-  udp.print(millis());
-  udp.print(":");
+//  udp.print(millis());
+//  udp.print(":");
   udp.print(packet);
   
   udp.endPacket();

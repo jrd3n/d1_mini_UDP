@@ -1,12 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Measurements</title>
+    <title>Data Visualization</title>
+      <!-- Include Chart.js library -->
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include Socket.IO -->
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@1.1.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@^1"></script> -->
+      <!-- Include Moment.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/moment"></script>
+
+    <!-- Include Moment.js adapter for Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+
+
+
+
+
+
 </head>
 <body>
-    <h1>Measurements</h1>
-    {% for measurement_name, measurement_value in measurements.items() %}
-        <p>{{measurement_name}}: {{measurement_value}}</p>
-    {% endfor %}
+    <canvas id="myChart"></canvas>
+
+    <!-- Load your main.js script after the libraries -->
+    <script src="/static/js/main.js"></script>
 </body>
 </html>

@@ -3,24 +3,21 @@ from sqlite3 import Error
 import pandas as pd
 import matplotlib.pyplot as plt
 
-global conn
-
 def create_connection(db_file):
-    global conn
     conn = None
     try:
         conn = sqlite3.connect(db_file)
         print(f'successful SQLite connection with sqlite version {sqlite3.version}')
+        return conn
     except Error as e:
         print(f"Error {e.args[0]}: {e}")
 
-def close_connection():
-    global conn
+def close_connection(conn):
     conn.close()
     print('SQLite connection is closed')
 
-def create_table():
-    global conn
+def create_table(conn):
+
     try:
         query = '''CREATE TABLE IF NOT EXISTS Sensor_Data (
                         id INTEGER PRIMARY KEY,
@@ -31,8 +28,8 @@ def create_table():
     except Error as e:
         print(e)
 
-def insert_data(event_time, ip_address, Raw_value):
-    global conn
+def insert_data(conn, event_time, ip_address, Raw_value):
+
     try:
         query = '''INSERT INTO Sensor_Data(event_time, ip_address, Raw_value) 
                 VALUES(?, ?, ?);'''
@@ -41,8 +38,8 @@ def insert_data(event_time, ip_address, Raw_value):
     except Error as e:
         print(e)
 
-def read_all_data():
-    global conn
+def read_all_data(conn):
+
     try:
         query = '''SELECT * FROM Sensor_Data;'''
         cur = conn.cursor()
@@ -53,9 +50,8 @@ def read_all_data():
     except Error as e:
         print(e)
 
-def read_data_to_dataframe(start_time = "all", end_time = "all"):
+def read_data_to_dataframe(conn,start_time = "all", end_time = "all"):
 
-    global conn
     start_time = '2023-06-01 00:00:00'  # Specify the start time
     end_time = '2023-07-02 00:00:00'  # Specify the end time
 
@@ -73,6 +69,9 @@ def read_data_to_dataframe(start_time = "all", end_time = "all"):
         mask = df['ip_address'] == ip
         df.loc[mask, ip] = df.loc[mask, 'Raw_value']
 
+        # Filter and remove rows where the value is the same as the previous row
+        df[df[ip].diff()!=0]
+
     # Assuming your DataFrame is named 'df'
     df['event_time'] = pd.to_datetime(df['event_time'], format='%Y-%m-%d %H:%M:%S.%f')
 
@@ -83,9 +82,9 @@ def read_data_to_dataframe(start_time = "all", end_time = "all"):
 
     # print(df)
 
-    shrunken_df = df.resample('10L').mean()
+    shrunken_df = df.resample('1S').mean()
 
-    print(shrunken_df)
+    # print(shrunken_df)
     
     # Calculate the mean of 100 readings using rolling window
     #df['rolling_mean'] = df['value'].rolling(window=100).mean()
@@ -102,9 +101,9 @@ def plot_data(df):
 
 if __name__ == "__main__":
     db_file = 'my_database.db'
-    create_connection(db_file)
+    conn = create_connection(db_file)
 
-    df = read_data_to_dataframe()
+    df = read_data_to_dataframe(conn)
     plot_data(df)
 
-    close_connection()
+    close_connection(conn)

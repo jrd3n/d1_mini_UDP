@@ -4,6 +4,7 @@ TARGET_IP = '10.81.252.114'
 TARGET_PORT = 1234
 
 import socket
+import time
 
 def send_udp_data(ip, port, message):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
@@ -15,6 +16,8 @@ if __name__ == "__main__":
     while True:
         for i in range (0,1200):
             send_udp_data(TARGET_IP, TARGET_PORT, str(i))
+            time.sleep(0.5)
         for i in range (1200,0):
             send_udp_data(TARGET_IP, TARGET_PORT, str(i))
+            time.sleep(0.5)
         
